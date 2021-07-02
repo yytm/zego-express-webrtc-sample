@@ -11,6 +11,57 @@ const publishStreamID = 'web-' + new Date().getTime();
 $(async () => {
     await checkAnRun();
 
+    function doPreviewPublish(config, streamID) {
+        zg.createStream(config).then(stream => {
+            zg.startPublishingStream(streamID ? streamID : idName, stream, { videoCodec: $('#videoCodeType').val(), extraInfo: JSON.stringify({ role: 2 }) })
+            
+            $('#testVideo')[0].srcObject = stream;
+        }).catch(err => {
+            console.error(err)
+        })
+    }
+    function changeStream(source, config) {
+
+        return new Promise((resolve, reject) => {
+            let video = source;
+            let canvas = document.createElement("canvas");
+            canvas.setAttribute("style", "display:none");
+            document.body.append(canvas);
+            let stream = video.captureStream()
+            // video.oncanplay = function () {
+                canvas.width = config.width ? config.width : video.videoWidth;
+                canvas.height = config.height ? config.height : video.videoHeight;
+            //     video.play();
+            // }
+            let ctx = canvas.getContext("2d");
+            let media = canvas.captureStream(25);
+            let track = media.getVideoTracks()[0];
+            let draw = function () {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                // track.requestFrame && track.requestFrame();
+                var timer = setTimeout(() => {
+                    draw();
+                }, 60);
+                // video.srcObject = stream;
+
+            }
+            draw();
+            let q = track.stop
+            track.stop = () => {
+                q.call(track);
+                // draw();
+                canvas.width = 0;
+                canvas.remove();
+                canvas = null;
+            }
+            if (stream instanceof MediaStream && stream.getAudioTracks().length) {
+                let micro = stream.getAudioTracks()[0];
+                media.addTrack(micro)
+            }
+            resolve(media)
+        })
+    }
+
     // --- test begin
     $('#publish').click(() => {
         const publishStreamID = new Date().getTime() + '';
@@ -28,6 +79,39 @@ $(async () => {
     });
     // --- test end
 
+    $('#externalCaptureV').click(async () => {
+        let loginSuc = false;
+        const channelCount = parseInt($('#channelCount').val());
+
+        let media = await changeStream($('#externerVideo')[0], {});
+
+        const constraints = {
+            custom: {
+                source: media,
+                channelCount: channelCount,
+
+            }
+        }
+        $('#audioBitrate').val() && (constraints.audioBitrate = parseInt($('#audioBitrate').val()));
+
+        try {
+            // $('#externerVideo')[0].play();
+            // loginSuc = await enterRoom();
+
+            // if (loginSuc) {
+                doPreviewPublish({
+                    custom: {
+                        source: media,
+                        channelCount: channelCount,
+                    },
+                    ...constraints
+                }, new Date().getTime() + "");
+
+            // }
+        } catch (error) {
+            console.error(error);
+        }
+    });
     $('#createRoom').unbind('click');
     $('#createRoom').click(async () => {
         let loginSuc = false;

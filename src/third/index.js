@@ -3,6 +3,7 @@ import { checkAnRun, enterRoom, push, previewVideo, isPreviewed } from '../commo
 
 $(async () => {
     await checkAnRun();
+    // $('#externerVideo')[0].oncanplay = 
     $('#changeUrl').click(async () => {
         if ($('#videoUrl').val()) {
             $('#externerVideo')[0].src = $('#videoUrl').val();
@@ -14,7 +15,7 @@ $(async () => {
         let loginSuc = false;
         const channelCount = parseInt($('#channelCount').val());
 
-        let media = await changeStream($('#externerVideo')[0]);
+        let media = await changeStream($('#externerVideo')[0], {  });
 
         const constraints = {
             custom: {
@@ -94,63 +95,116 @@ $(async () => {
             return false;
         }
     }
+    // function changeStream(source) {
 
-    function changeStream(source) {
+    //     // var version = getChromeVersion();
+    //     // if (version != 88) {
+    //     //     return source
+    //     // }
+    //     // return zg.createStream({
+    //     //     custom: {
+    //     //         source: source
+    //     //     }
+    //     // }).then(stream => {
+    //         // let video = document.createElement("video");
+    //         let video = source;
+    //         let canvas = document.createElement("canvas");
+    //         // video.setAttribute("style", "display:none");
+    //         canvas.setAttribute("style", "display:none");
+    //         // video.setAttribute("muted", "");
+    //         // video.muted = !0;
+    //         // video.setAttribute("autoplay", "");
+    //         // video.autoplay = !0;
+    //         video.setAttribute("playsinline", "");
+    //         // document.body.append(video);
+    //         document.body.append(canvas);
+            
+    //         // video.srcObject = stream;
+    //         // video.oncanplay = function () {
+    //         //     console.warn('oncanplay')
+    //             canvas.width = video.videoWidth;
+    //             canvas.height = video.videoHeight;
+    //             // video.play();
+                
+    //         // }
 
-        var version = getChromeVersion();
-        if (version != 88) {
-            return source
-        }
-        return zg.createStream({
-            custom: {
-                source: source
-            }
-        }).then(stream => {
-            let video = document.createElement("video");
+    //         let media = canvas.captureStream(25);
+    //         let track = media.getVideoTracks()[0];
+    //         let ctx = canvas.getContext("2d");
+    //         let draw = function () {
+    //             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    //             // window.requestAnimationFrame(draw)
+    //             track.requestFrame && track.requestFrame();
+    //             // video.srcObject = stream;
+
+    //         }
+
+    //         draw();
+    //         setInterval(() => {
+    //             draw()
+    //         }, 25)
+    //         let q = track.stop
+    //         track.stop = () => {
+    //             q.call(track);
+    //             draw();
+    //             video.remove();
+    //             canvas.width = 0;
+    //             canvas.remove();
+    //             video = canvas = null;
+    //         }
+    //         video.play()
+    //         // if (stream instanceof MediaStream && stream.getAudioTracks().length) {
+    //         //     let micro = stream.getAudioTracks()[0];
+    //         //     media.addTrack(micro)
+    //         // }
+    //         return media
+    //     // }).catch(err => {
+    //     //     console.error(err)
+    //     // })
+    // }
+    function changeStream(source, config) {
+
+        return new Promise((resolve, reject) => {
+            let video = source;
             let canvas = document.createElement("canvas");
-            video.setAttribute("style", "display:none");
             canvas.setAttribute("style", "display:none");
-            video.setAttribute("muted", "");
-            video.muted = !0;
-            video.setAttribute("autoplay", "");
-            video.autoplay = !0;
-            video.setAttribute("playsinline", "");
-            document.body.append(video);
             document.body.append(canvas);
-            video.srcObject = stream;
-            video.oncanplay = function () {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                video.play();
-                draw();
-            }
+            let stream = video.captureStream()
 
+            // video.oncanplay = function () {
+                canvas.width = config.width ? config.width : video.videoWidth;
+                canvas.height = config.height ? config.height : video.videoHeight;
+                // video.play();
+            // }
+            let ctx = canvas.getContext("2d");
             let media = canvas.captureStream(25);
             let track = media.getVideoTracks()[0];
-            let ctx = canvas.getContext("2d");
+            let timer;
             let draw = function () {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                // window.requestAnimationFrame(draw)
-                track.requestFrame && track.requestFrame();
-                video.srcObject = stream;
+                // track.requestFrame && track.requestFrame();
+                timer = setTimeout(() => {
+                    draw();
+                }, 60);
+                // video.srcObject = stream;
 
             }
+            draw();
             let q = track.stop
             track.stop = () => {
                 q.call(track);
-                draw();
-                video.remove();
+                // draw();
+                // video.remove();
                 canvas.width = 0;
                 canvas.remove();
-                video = canvas = null;
+                canvas = null;
+                timer && clearTimeout(timer)
             }
             if (stream instanceof MediaStream && stream.getAudioTracks().length) {
                 let micro = stream.getAudioTracks()[0];
                 media.addTrack(micro)
             }
-            return media
-        }).catch(err => {
-            console.error(err)
+            resolve(media)
         })
     }
 

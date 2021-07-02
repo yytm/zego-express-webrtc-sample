@@ -267,6 +267,7 @@
           <button type="button" id="extraInfo" class="btn btn-primary btn-sm">修改流附加信息</button>
           <button type="button" id="switchConstraints" class="btn btn-primary btn-sm">改变推流视频参数</button>
           <button type="button" id="setAudioConfig" class="btn btn-primary btn-sm">改变推流3A</button>
+          <button type="button" id="externalCaptureV" class="btn btn-primary btn-sm pushThird">推第三方视频</button>
           <!-- <button type="button" id="playVideo" class="btn btn-primary btn-sm">播放视频</button> -->
           <button type="button" id="leaveRoom" class="btn btn-secondary btn-sm leaveRoom">退出</button>
         </div>
@@ -277,6 +278,9 @@
           <h5 class="sound d-none"><span class="soundText">当前音量：</span> <span id="soundLevel">0</span></h5>
           <label id="previewLabel" class="text-white"></label>
           <video id="previewVideo" autoplay muted playsinline></video>
+          <video id="testVideo" autoplay muted playsinline></video>
+          <video id="externerVideo" crossOrigin="anonymous" playsinline autoplay controls src="https://zego-public.oss-cn-shanghai.aliyuncs.com/sdk-doc/assets/big_buck_bunny.mp4" loop></video>
+
         </div>
         <div class="col-sm remoteVideo">
           <!-- <video  autoplay muted playsinline></video> -->
